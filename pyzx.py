@@ -2,16 +2,42 @@
 # -*- coding: utf-8 -*-
 
 # ZX screen (*.scr) format raw binary file to standard image (jpg, png, bmp, ...) converter, v1.0
+# and other tools
 # (c)2018 MoNsTeR/GDC, Noniewicz.com, Jakub Noniewicz
 # cre: 20181117
-# upd: ?
+# upd: 20181118
 
 # TODO:
 # - ?
 
 from PIL import Image, ImageDraw
 from array import array
+import math
 #import os, sys, argparse
+
+
+def gen_y_addr_table():
+    for y in range(192):
+        ya = (y & 7) * 256 + ((y >> 3) & 7) * 32 + (y >> 6) * 2048;
+        print('dw', ya, ';', y)
+
+
+def get_sincos(xy0, xya):
+    a = math.pi/180
+    c = 360/255
+    print('sin256:')
+    for x in range(256):
+        y = round(xy0+xya*math.sin(a*x*c));
+        print('db', y, ';', x, '/', x*c)
+    print('')
+    print('cos256:')
+    for x in range(256):
+        y = round(xy0+xya*math.cos(a*x*c));
+        print('db', y, ';', x, '/', x*c)
+
+
+def bytecolor(ink, paper, bright):
+    return (ink & 7) + (paper & 7)*8 + 64*(bright & 1) + 128*0;
 
 
 def zx2image(fn, fn_out):
@@ -26,16 +52,10 @@ def zx2image(fn, fn_out):
     draw = ImageDraw.Draw(im)
 
     for y in range(192):
-        scr_ofs = 256*(y&7) + 32*((y&63)>>3)
+        scr_ofs = 256*(y&7) + 32*((y&63)>>3) + (y>>6)*2048
         attr_ofs_0 = 6144+(y>>3)*32
-        shi = 0
-        if y > 63:
-            shi = 2048
-        if y > 127:
-            shi = 4096
-        print(y, shi+scr_ofs)
         for x in range(32):
-            b = data[shi+scr_ofs+x]
+            b = data[scr_ofs+x]
             attr = data[attr_ofs_0+x]
             c_bright = attr&64
             if c_bright == 0:
@@ -56,3 +76,6 @@ def zx2image(fn, fn_out):
 zx2image(fn='thegg2x-frm.scr', fn_out='thegg2x-frm.scr.png')
 #zx2image(fn='thegg2x-frm.scr', fn_out='thegg2x-frm.jpg')
 #zx2image(fn='thegg2x-frm.scr', fn_out='thegg2x-frm.bmp')
+
+#get_sincos(32, 31)
+
