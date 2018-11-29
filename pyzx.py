@@ -5,7 +5,7 @@
 # and other tools
 # (c)2018 MoNsTeR/GDC, Noniewicz.com, Jakub Noniewicz
 # cre: 20181117
-# upd: 20181118
+# upd: 20181118, 29
 
 # TODO:
 # - ?
@@ -22,7 +22,7 @@ def gen_y_addr_table():
         print('dw', ya, ';', y)
 
 
-def get_sincos(xy0, xya):
+def gen_sincos(xy0, xya):
     a = math.pi/180
     c = 360/255
     print('sin256:')
@@ -36,8 +36,8 @@ def get_sincos(xy0, xya):
         print('db', y, ';', x, '/', x*c)
 
 
-def bytecolor(ink, paper, bright):
-    return (ink & 7) + (paper & 7)*8 + 64*(bright & 1) + 128*0;
+def bytecolor(ink, paper, bright, flash=0):
+    return (ink & 7) + (paper & 7)*8 + 64*(bright & 1) + 128*(flash & 1);
 
 
 def zx2image(fn, fn_out):
@@ -46,6 +46,8 @@ def zx2image(fn, fn_out):
         data = f.read()
     C_0 = 192
     C_1 = 252
+#    C_0 = 215 #D7
+#    C_1 = 255
     ZXC0 = [(0,0,0), (0,0,C_0), (C_0,0,0), (C_0,0,C_0), (0,C_0,0), (0,C_0,C_0), (C_0,C_0,0), (C_0,C_0,C_0)]
     ZXC1 = [(0,0,0), (0,0,C_1), (C_1,0,0), (C_1,0,C_1), (0,C_1,0), (0,C_1,C_1), (C_1,C_1,0), (C_1,C_1,C_1)]
     im = Image.new('RGB', (256, 192), (0,0,0))
@@ -77,5 +79,5 @@ zx2image(fn='thegg2x-frm.scr', fn_out='thegg2x-frm.scr.png')
 #zx2image(fn='thegg2x-frm.scr', fn_out='thegg2x-frm.jpg')
 #zx2image(fn='thegg2x-frm.scr', fn_out='thegg2x-frm.bmp')
 
-#get_sincos(32, 31)
+#gen_sincos(32, 31)
 
