@@ -1,7 +1,8 @@
-# pyzx
+# # pyzx48tools
+
 ZX Spectrum data manipulation in Python.
 
-For starters: ZX Sprectum *.scr images converter.
+- ZX Spectrum *.scr images converter and some more maniputaion tools.
 
-also some more stuff...
+- ZX Spectrum *.tap files creator and some data extractors: ZX BASIC to plain text and ZX GENS to plain text
 
