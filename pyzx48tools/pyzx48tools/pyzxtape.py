@@ -13,7 +13,6 @@
 - consistent code style
 - future: tape read?
 - future generate tape loader?
-- ?
 """
 
 from array import array

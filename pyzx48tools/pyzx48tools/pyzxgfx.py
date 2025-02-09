@@ -6,16 +6,14 @@
 # upd: 20181118, 29
 # upd: 20181201, 03, 04
 # upd: 20190321, 23, 24
-# upd: 20250209
+# upd: 20250209, 10
 
 """ TODO:
 - cleanup
 - desc cleanup
-- write examples
-- upd git
-- test as old (all results runnable)
 - write modern tests -> test @w10
 - add more (tools from zx projects) == F:\ZXSpectrum4\zx-gen-32x24\src
+- consistent code style
 - revise todos
 """
 
