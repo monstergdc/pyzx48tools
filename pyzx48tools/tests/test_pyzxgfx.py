@@ -1,6 +1,6 @@
 ﻿
 import unittest
-from pyzx48tools import pyzxgfx
+from pyzx48tools import zxgfx
 
 class TestZX(unittest.TestCase):
     def test1(self):

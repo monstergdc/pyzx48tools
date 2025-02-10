@@ -1,6 +1,6 @@
 ﻿
 import unittest
-from pyzx48tools import pyzxtape
+from pyzx48tools import zxtape
 
 class TestZX(unittest.TestCase):
     def test1(self):

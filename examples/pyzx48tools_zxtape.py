@@ -15,19 +15,22 @@ from pyzx48tools import zxtape
 tape = zxtape()
 
 def demo_basic():
-    lines = tape.read_basic('data/BasicNostalgia.bin')
-    for line in lines:
-        print(line)
+    bas = tape.read_basic('data/BasicNostalgia.bin')
+    print("example BASIC program")
+    print(bas)
 
 def demo_gens():
     gens = tape.gens2text("data/amiga_gens_src.bin", line_nums=True)
+    print("example GENS code")
     print(gens)
 
 def demo_tap():
+    mytap = "gemslider.tap"
     with open("data/gemslider.scr", 'rb') as f:
         rawdata = f.read()
-    tape.tap_append("gemslider.tap", "image6912", rawdata, 16384, 0)
-    tape.tap_append("gemslider.tap", "image6144", rawdata, 16384, size=6144) # pixels only
+    tape.tap_append(mytap, "image6912", rawdata, 16384, 0)
+    tape.tap_append(mytap, "image6144", rawdata, 16384, size=6144) # pixels only
+    print(f"generated example tap file: {mytap}")
 
 
 if __name__ == '__main__':

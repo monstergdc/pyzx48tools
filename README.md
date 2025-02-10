@@ -4,9 +4,14 @@
 
 ![image](/assets/GFX_MoNsTeR-GDC_Demo.png?raw=true "Image")
 
+## License
+This project is licensed under the GNU Lesser General Public License v3.0 (LGPL-3.0). See the [LICENSE](LICENSE) file for details.
+
 ## Installation:
 
-## TODO write
+for now:
+**pip install dist/pyzx48tools-0.1.0-py3-none-any.whl
+
 
 See examples below:
 
