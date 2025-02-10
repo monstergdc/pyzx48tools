@@ -45,9 +45,8 @@ tape = zxtape()
 
 # --- read BASIC program
 
-lines = tape.read_basic('data/BasicNostalgia.bin')
-for line in lines:
-    print(line)
+bas = tape.read_basic('data/BasicNostalgia.bin')
+print(bas)
 
 # --- read GENS assembler source
 
