@@ -1,6 +1,14 @@
 # pyzx48tools
 
-ZX Spectrum data manipulation in Python.
+## ZX Spectrum data manipulation in Python.
+
+![image](/assets/GFX_MoNsTeR-GDC_Demo.png?raw=true "Image")
+
+## Installation:
+
+## TODO write
+
+See examples below:
 
 - ZX Spectrum *.scr images converter (eg. to *.png, *.jpg, *.bmp) and some more manipulation tools.
 ```
