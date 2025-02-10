@@ -3,7 +3,7 @@
 
 @rem pip install setuptools wheel twine
 
-python setup.py sdist bdist_wheel > build_package-log.log
+python setup.py sdist bdist_wheel
 
 @rem # upload
 

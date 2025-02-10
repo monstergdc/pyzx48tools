@@ -8,20 +8,22 @@
 # upd: 20250209, 10
 
 # TODO:
-#tape.gen_sincos(32, 31)
+# ?
 
 from pyzx48tools import zxtape
 
 tape = zxtape()
 
 def demo_basic():
-    bas = tape.read_basic('data/BasicNostalgia.bin')
     print("example BASIC program")
+    bas = tape.read_basic('data/BasicNostalgia.bin')
     print(bas)
+    #bas = tape.read_basic('data/basic2.bin')
+    #print(bas)
 
 def demo_gens():
-    gens = tape.gens2text("data/amiga_gens_src.bin", line_nums=True)
     print("example GENS code")
+    gens = tape.gens2text("data/amiga_gens_src.bin", line_nums=True)
     print(gens)
 
 def demo_tap():

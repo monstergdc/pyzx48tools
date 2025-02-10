@@ -8,15 +8,6 @@
 # upd: 20190321, 23, 24
 # upd: 20250209, 10
 
-""" TODO:
-- cleanup
-- desc cleanup
-- write modern tests -> test @w10
-- add more (tools from zx projects) == F:\ZXSpectrum4\zx-gen-32x24\src
-- consistent code style
-- revise todos
-"""
-
 from PIL import Image, ImageDraw
 from array import array
 import math, os
@@ -58,6 +49,11 @@ class zxgfx:
             c_ink = self.ZXC1[attr&7]
             c_paper = self.ZXC1[(attr>>3)&7]
         return c_bright, c_paper, c_ink
+
+    def write_bin(self, fn_out, data):
+        """ write binary data to file """
+        with open(fn_out, "wb") as nfile:
+            nfile.write((''.join(chr(i) for i in data)).encode('charmap'))
 
     def zx2image(self, fn, fn_out="", bw=False):
         """ convert ZX image (scr, 6912 bytes) to standard image """
@@ -138,8 +134,7 @@ class zxgfx:
     #            i = x + 32 * y
     #            data[i+6144] = self.bytecolor(ink=7, paper=0, bright=1, flash=0)
 
-        nfile = open(fn_out, 'wb')
-        nfile.write((''.join(chr(i) for i in data)).encode('charmap'))
+        self.write_bin(fn_out, data)
         
     def two_img2zxattr(self, fn1, fn2, fn_out):
         """ ? """
@@ -179,8 +174,7 @@ class zxgfx:
                 i = x + 32 * y
                 data[i+6144] = self.bytecolor(ink=ink, paper=paper, bright=bright, flash=1)
 
-        nfile = open(fn_out, 'wb')
-        nfile.write((''.join(chr(i) for i in data)).encode('charmap'))
+        self.write_bin(fn_out, data)
 
     def attr2zx(self, mode, fn_out, y0=0, x0=0, ymax=24, xmax=32):
         """ unintended consequences - cool flash effects w/o zx code """
@@ -224,8 +218,7 @@ class zxgfx:
                         ii2 = 0
                     data[i+6144] = self.bytecolor(ink=ii1, paper=ii2, bright=1, flash=1) # two circles
 
-        nfile = open(fn_out, 'wb')
-        nfile.write((''.join(chr(i) for i in data)).encode('charmap'))
+        self.write_bin(fn_out, data)
 
     def zx2mix(self, fn1, fn2, fn_out, y0=0, x0=0, ymax=24, xmax=32):
         """ mix two attrs """
@@ -244,8 +237,7 @@ class zxgfx:
                 x = x1 + x0
                 i = x + 32 * y
                 data[i+6144] = data2[i+6144]
-        nfile = open(fn_out, 'wb')
-        nfile.write((''.join(chr(i) for i in data)).encode('charmap'))
+        self.write_bin(fn_out, data)
 
     def img2zxfont(self, file_in: str, file_out: str, charcount: int):
         """ ? """

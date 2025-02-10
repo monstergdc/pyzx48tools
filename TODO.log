@@ -1,0 +1,23 @@
+
+0. general
+- more examples
+- some docs
+- write modern tests -> test @w10
+
+1. tap
+- future: tape read
+- future: generate tape loader? (clear XXX-1: LOAD "" CODE: randomize usr XXX
+- future: tzx?
+- future: bas - show vars?
+- revise todos
+
+2. gfx
+- [!] fix image2zx
+- cleanup
+- add more (tools from zx projects) == F:\ZXSpectrum4\zx-gen-32x24\src
+- consistent code style
+- font 16x16
+- revise todos
+
+3. add snd?
+

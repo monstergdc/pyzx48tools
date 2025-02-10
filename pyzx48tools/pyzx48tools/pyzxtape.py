@@ -7,12 +7,6 @@
 # upd: 20190321, 23, 24
 # upd: 20250209, 10
 
-""" TODO:
-- fix bas read issues (is it showing variables maybe?)
-- future: tape read
-- future: generate tape loader? (clear XXX-1: LOAD "" CODE: randomize usr XXX
-"""
-
 from array import array
 import math, os
 
@@ -56,12 +50,12 @@ class zxtape:
                     if not b1 or not b2:
                         break
 
-                    # no, this does not work!
-                    #if b1[0] == 0 and len(lines)>0: # 0 mark end, then there are just variables
-                    #    print("debug break on zero")
-                    #    break
-
                     lineno = int.from_bytes(b1, 'big') * 256 + int.from_bytes(b2, 'big')
+                    if lineno > 9999:
+                        # max line number is 9999
+                        # so it seems we have some variables?
+                        # ignore for now
+                        break
 
                     b1 = f.read(1)  # 2 byte line len - ignore
                     if not b1:
