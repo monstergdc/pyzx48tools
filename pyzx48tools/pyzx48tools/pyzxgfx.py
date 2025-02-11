@@ -6,11 +6,13 @@
 # upd: 20181118, 29
 # upd: 20181201, 03, 04
 # upd: 20190321, 23, 24
-# upd: 20250209, 10
+# upd: 20250209, 10, 11
 
 from PIL import Image, ImageDraw
 from array import array
+from collections import Counter
 import math, os
+import copy
 
 class zxgfx:
     def __init__(self):
@@ -50,10 +52,31 @@ class zxgfx:
             c_paper = self.ZXC1[(attr>>3)&7]
         return c_bright, c_paper, c_ink
 
+    def get_subset(self, data, start=0, length=None, end=None):
+        """ extract subset of binary data """
+        if length is not None:
+            subset = data[start:start + length]
+        elif end is not None:
+            subset = data[start:end]
+        else:
+            raise ValueError("Either length or end must be provided")
+        return copy.deepcopy(subset)
+
     def write_bin(self, fn_out, data):
         """ write binary data to file """
         with open(fn_out, "wb") as nfile:
             nfile.write((''.join(chr(i) for i in data)).encode('charmap'))
+
+    def write_text(self, fn_out, data):
+        """ write text data to file """
+        try:
+            with open(fn_out, "w") as text_file:
+                text_file.write(data)
+                text_file.close()
+            return 0
+        except Exception as e:
+            print(f"Error saving file: {e}")
+            return -1
 
     def zx2image(self, fn, fn_out="", bw=False):
         """ convert ZX image (scr, 6912 bytes) to standard image """
@@ -83,56 +106,108 @@ class zxgfx:
             im.save(fn_out)
         return im
 
+    def apply_palette(self, img, palette, dither=Image.NONE):
+        """
+        Convert an RGB image to a 16-color image using a given palette.
+        
+        :param img: PIL Image in RGB mode.
+        :param palette: List of 16 RGB tuples [(R,G,B), (R,G,B), ...]
+        :param dither: Dithering mode (Image.NONE or Image.FLOYDSTEINBERG)
+        :return: PIL Image in 'P' mode using the given palette.
+        """
+        # Create a new palette image (must be a multiple of 3 in size)
+        palette_img = Image.new("P", (1, 1))
+        flat_palette = [color for rgb in palette for color in rgb]  # Flatten list
+        palette_img.putpalette(flat_palette + [0] * (768 - len(flat_palette)))  # Ensure 256 colors
+        
+        # Convert image using the palette
+        return img.convert("RGB").quantize(palette=palette_img, dither=dither)
+
+    def color_distance(self, c1, c2):
+        """Calculate the Euclidean distance between two RGB colors."""
+        return math.sqrt(sum((a - b) ** 2 for a, b in zip(c1, c2)))
+
+    def find_colors(self, im, x, y):
+        """Find the most frequent color and the highest-contrast second frequent color in an 8x8 region."""
+        color_counts = Counter()
+        # Collect colors in the 8x8 block
+        for y8 in range(8):
+            for x8 in range(8):
+                color = im.getpixel((x + x8, y + y8))
+                color_counts[color] += 1
+
+        # Sort colors by frequency
+        sorted_colors = color_counts.most_common()
+        if not sorted_colors:
+            return None, None
+
+        most_frequent = sorted_colors[0][0]  # Most frequent color
+
+        # Find the second most frequent color with max contrast
+        max_contrast_color = None
+        max_contrast = -1
+
+        for color, _ in sorted_colors[1:]:  # Skip the most frequent color
+            contrast = self.color_distance(most_frequent, color)
+            if contrast > max_contrast:
+                max_contrast = contrast
+                max_contrast_color = color
+
+        return most_frequent, max_contrast_color
+
+    def find_nearest_zx_color(self, target, colors):
+        """ Find the nearest color to the target in the given list."""
+        return min(colors, key=lambda color: self.color_distance(target, color))
+
+    def find_nearest_zx_color_index(self, target, colors):
+        """ Find the index of the nearest color to the target in the given list."""
+        return min(range(len(colors)), key=lambda i: self.color_distance(target, colors[i]))
+
     def image2zx(self, fn, fn_out, attr=True):
-        """ ? """
-        # todo: czy to dziala? NIE
+        """ convert image to ZX .scr format """
+        # todo: NIE dziala! kolory, ale i pixele zle?
+        # todo: opt no attr
+        # todo: opt no resize, but work with part also work proper with smaller than 256x192
         im = Image.open(fn)
         size = 256, 192
-        im.thumbnail(size)
-        im = im.convert('RGB')
+        im.thumbnail(size) # todo: also part of bigger?
+        #im = im.convert('RGB') # no need, done in apply_palette
+        im = self.apply_palette(im, palette=self.ZXC, dither=Image.FLOYDSTEINBERG)
+        im = im.convert('RGB') #re-RBG
         data = [0] * 6912 # 6144+768
+        #data[6144:6912] = [56] * (6912 - 6144) # debug override
 
-        r = 0
-        g = 0
-        b = 0
         for y in range(192):
             for x in range(256):
-                y32 = y>>3
-                x32 = x>>3
-                r1, g1, b1 = im.getpixel((x, y))
+                rgb = im.getpixel((x, y))
+                rgbzx = self.find_nearest_zx_color(rgb, self.ZXC)
 
                 if x&7 == 0 and y&7 == 0:
-                    for y8 in range(8):
-                        for x8 in range(8):
-                            r1, g1, b1 = im.getpixel((x+x8, y+y8))
-                            r += r1
-                            g += g1
-                            b += b1
-                    r = int(r/64)
-                    g = int(g/64)
-                    b = int(b/64)
-                ink = 7
-                paper = 0
-                # ^^^^ zle (why? what? nie robi kolorow?)
+                    most_frequent_color, max_contrast_color = self.find_colors(im, x, y) # as paper, ink
+                    if max_contrast_color == None:
+                        max_contrast_color = most_frequent_color
+                    ink_ndx = self.find_nearest_zx_color_index(max_contrast_color, self.ZXC)
+                    paper_ndx = self.find_nearest_zx_color_index(most_frequent_color, self.ZXC)
+                    bright = 0
+                    if ink_ndx > 7 or paper_ndx > 7:
+                        bright = 1
+                    ink = ink_ndx & 7
+                    paper = paper_ndx & 7
+                    #ink = 7 # debug override
+                    #paper = 1 # debug override
+                    xa = x>>3
+                    ya = y>>3
+                    i = xa + 32*ya
+                    data[i+6144] = self.bytecolor(ink=ink, paper=paper, bright=bright, flash=0)
+                    #print('debug:', x, y, 'c:', rgb, rgbzx, 'map(p,i):', most_frequent_color, max_contrast_color, 'paper:', paper, 'ink:', ink, 'bright:', bright)
 
                 scr_ofs = (x>>3) + 256*(y&7) + 32*((y&63)>>3) + (y>>6)*2048
                 bit = 2**(7-x&7)
-                if (r1+g1+b1)/3 > 32:
-                    data[scr_ofs] |= bit
-                else:
-                    data[scr_ofs] &= 255-bit
-                i = x32 + 32 * y32
-                data[i+6144] = self.bytecolor(ink=ink, paper=paper, bright=1, flash=0)
-
-    #    for y in range(24):
-    #        for x in range(32):
-    #            i = x + 32 * y
-    #            data[i+6144] = self.bytecolor(ink=int(x*y/2)&7, paper=int(x*y/3)&7, bright=1, flash=1) # weird 3
-
-    #    for y in range(24):
-    #        for x in range(32):
-    #            i = x + 32 * y
-    #            data[i+6144] = self.bytecolor(ink=7, paper=0, bright=1, flash=0)
+                # ^^^ TODO: prawie dziala jeszcze bit 0/1 zal ktory kolor - cos tu zle wtf
+                if rgbzx != most_frequent_color:
+                    data[scr_ofs] |= bit # ink (1)
+                else: #no need, already 0-s?
+                    data[scr_ofs] &= 255-bit # paper (0)
 
         self.write_bin(fn_out, data)
         
@@ -155,6 +230,7 @@ class zxgfx:
                 ink = 0
                 paper = 0
                 bright = 0
+                # todo: this can do better!
                 for i in range(16):
                     c = self.ZXC[i]
                     dr1 = r1-c[0]

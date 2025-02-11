@@ -3,21 +3,21 @@
 - more examples
 - some docs
 - write modern tests -> test @w10
+- revise todos
+- code cleanup
 
 1. tap
 - future: tape read
 - future: generate tape loader? (clear XXX-1: LOAD "" CODE: randomize usr XXX
 - future: tzx?
-- future: bas - show vars?
-- revise todos
+- future: bas - also show vars?
 
 2. gfx
-- [!] fix image2zx
-- cleanup
+.- [!] fix image2zx
+.- get_subset -> use
 - add more (tools from zx projects) == F:\ZXSpectrum4\zx-gen-32x24\src
 - consistent code style
 - font 16x16
-- revise todos
 
 3. add snd?
 
