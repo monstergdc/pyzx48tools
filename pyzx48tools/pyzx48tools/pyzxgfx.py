@@ -6,7 +6,7 @@
 # upd: 20181118, 29
 # upd: 20181201, 03, 04
 # upd: 20190321, 23, 24
-# upd: 20250209, 10, 11
+# upd: 20250209, 10, 11, 12
 
 from PIL import Image, ImageDraw
 from array import array
@@ -19,19 +19,26 @@ class zxgfx:
         self.set_color_mode_std()
 
     def set_color_mode(self, C_0, C_1):
-        # todo: no twice
-        self.ZXC0 = [(0,0,0), (0,0,C_0), (C_0,0,0), (C_0,0,C_0), (0,C_0,0), (0,C_0,C_0), (C_0,C_0,0), (C_0,C_0,C_0)]
-        self.ZXC1 = [(0,0,0), (0,0,C_1), (C_1,0,0), (C_1,0,C_1), (0,C_1,0), (0,C_1,C_1), (C_1,C_1,0), (C_1,C_1,C_1)]
+        """ ? """
         self.ZXC = [(0,0,0), (0,0,C_0), (C_0,0,0), (C_0,0,C_0), (0,C_0,0), (0,C_0,C_0), (C_0,C_0,0), (C_0,C_0,C_0),
                     (0,0,0), (0,0,C_1), (C_1,0,0), (C_1,0,C_1), (0,C_1,0), (0,C_1,C_1), (C_1,C_1,0), (C_1,C_1,C_1)]
+        self.ZXC0 = copy.deepcopy(self.ZXC[0:7+1])
+        self.ZXC1 = copy.deepcopy(self.ZXC[8:])
 
     def set_color_mode_std(self):
+        """ ? """
         self.set_color_mode(192, 252)
 
     def set_color_mode_light(self):
-        self.set_color_mode(215, 2555)
+        """ ? """
+        self.set_color_mode(215, 255)
+
+    def get_zxpalette(self):
+        """ ? """
+        return copy.deepcopy(self.ZXC)
 
     def get_zxcolor(self, index, bright):
+        """ ? """
         if index < 0 or index > 7:
             return None
         if bright == 0:
@@ -40,9 +47,11 @@ class zxgfx:
             return self.ZXC1(index)
     
     def bytecolor(self, ink, paper, bright, flash=0):
+        """ ? """
         return (ink & 7) + (paper & 7)*8 + 64*(bright & 1) + 128*(flash & 1)
 
     def frombytecolor(self, attr):
+        """ ? """
         c_bright = attr&64
         if c_bright == 0:
             c_ink = self.ZXC0[attr&7]
@@ -54,13 +63,20 @@ class zxgfx:
 
     def get_subset(self, data, start=0, length=None, end=None):
         """ extract subset of binary data """
+        if not isinstance(data, (bytes, bytearray)):
+            raise TypeError("Data must be bytes or bytearray")
+        data_size = len(data)
+        if start < 0 or start >= data_size:
+            raise ValueError("Start index is out of range")
         if length is not None:
-            subset = data[start:start + length]
+            end = min(start + length, data_size)
         elif end is not None:
-            subset = data[start:end]
+            if end < start:
+                raise ValueError("End index cannot be less than start index")
+            end = min(end, data_size)
         else:
             raise ValueError("Either length or end must be provided")
-        return copy.deepcopy(subset)
+        return copy.deepcopy(data[start:end])
 
     def write_bin(self, fn_out, data):
         """ write binary data to file """
@@ -119,7 +135,6 @@ class zxgfx:
         palette_img = Image.new("P", (1, 1))
         flat_palette = [color for rgb in palette for color in rgb]  # Flatten list
         palette_img.putpalette(flat_palette + [0] * (768 - len(flat_palette)))  # Ensure 256 colors
-        
         # Convert image using the palette
         return img.convert("RGB").quantize(palette=palette_img, dither=dither)
 
@@ -163,54 +178,84 @@ class zxgfx:
         """ Find the index of the nearest color to the target in the given list."""
         return min(range(len(colors)), key=lambda i: self.color_distance(target, colors[i]))
 
-    def image2zx(self, fn, fn_out, attr=True):
-        """ convert image to ZX .scr format """
-        # todo: NIE dziala! kolory, ale i pixele zle?
-        # todo: opt no attr
-        # todo: opt no resize, but work with part also work proper with smaller than 256x192
-        im = Image.open(fn)
+    def get_pixels(self, data):
+        """ ? """
+        return self.get_subset(self, data, start=0, length=6144)
+
+    def get_attributes(self, data):
+        """ ? """
+        return self.get_subset(self, data, start=6144, length=768)
+
+    def crop_image(self, im, x, y, w, h):
+        img_width, img_height = im.size
+        x = max(0, min(x, img_width))
+        y = max(0, min(y, img_height))
+        w = max(0, min(w, img_width - x))
+        h = max(0, min(h, img_height - y))
+        cropped_im = im.crop((x, y, x + w, y + h))
+        return cropped_im
+
+    def image2zx(self, fn, im_in=None, fn_out=None, no_attr=False, override_attr_byte=None, dither=Image.FLOYDSTEINBERG, altpalette=None):
+        """ convert image to ZX .scr format, optionally save, also return raw data """
+        if altpalette == None:
+            palette = self.ZXC
+        else:
+            palette = altpalette
+        if fn == None and im_in != None:
+            im = im_in
+        else:
+            im = Image.open(fn)
+        #z = im.size # (width, height)
         size = 256, 192
         im.thumbnail(size) # todo: also part of bigger?
         #im = im.convert('RGB') # no need, done in apply_palette
-        im = self.apply_palette(im, palette=self.ZXC, dither=Image.FLOYDSTEINBERG)
-        im = im.convert('RGB') #re-RBG
+        im = self.apply_palette(im, palette=palette, dither=dither)
+        im = im.convert('RGB') #re-RBG requred
         data = [0] * 6912 # 6144+768
-        #data[6144:6912] = [56] * (6912 - 6144) # debug override
+        mfc = [[(0, 0, 0) for _ in range(32)] for _ in range(24)]
+        mcc = [[(0, 0, 0) for _ in range(32)] for _ in range(24)]
 
+        # map colors 32x24
+        for y in range(192//8):
+            for x in range(256//8):
+                most_frequent_color, max_contrast_color = self.find_colors(im, x*8, y*8) # as paper, ink
+                if max_contrast_color == None:
+                    max_contrast_color = most_frequent_color
+                ink_ndx = self.find_nearest_zx_color_index(max_contrast_color, palette)
+                paper_ndx = self.find_nearest_zx_color_index(most_frequent_color, palette)
+                bright = 0
+                if ink_ndx > 7 or paper_ndx > 7:
+                    bright = 1
+                ink = ink_ndx & 7
+                paper = paper_ndx & 7
+                data[x+32*y+6144] = self.bytecolor(ink=ink, paper=paper, bright=bright, flash=0)
+                mfc[y][x] = most_frequent_color
+                mcc[y][x] = max_contrast_color
+
+        # map pixels
         for y in range(192):
+            y_ofs = 256*(y&7) + 32*((y&63)>>3) + (y>>6)*2048
+            ya = y>>3
             for x in range(256):
-                rgb = im.getpixel((x, y))
-                rgbzx = self.find_nearest_zx_color(rgb, self.ZXC)
-
-                if x&7 == 0 and y&7 == 0:
-                    most_frequent_color, max_contrast_color = self.find_colors(im, x, y) # as paper, ink
-                    if max_contrast_color == None:
-                        max_contrast_color = most_frequent_color
-                    ink_ndx = self.find_nearest_zx_color_index(max_contrast_color, self.ZXC)
-                    paper_ndx = self.find_nearest_zx_color_index(most_frequent_color, self.ZXC)
-                    bright = 0
-                    if ink_ndx > 7 or paper_ndx > 7:
-                        bright = 1
-                    ink = ink_ndx & 7
-                    paper = paper_ndx & 7
-                    #ink = 7 # debug override
-                    #paper = 1 # debug override
-                    xa = x>>3
-                    ya = y>>3
-                    i = xa + 32*ya
-                    data[i+6144] = self.bytecolor(ink=ink, paper=paper, bright=bright, flash=0)
-                    #print('debug:', x, y, 'c:', rgb, rgbzx, 'map(p,i):', most_frequent_color, max_contrast_color, 'paper:', paper, 'ink:', ink, 'bright:', bright)
-
-                scr_ofs = (x>>3) + 256*(y&7) + 32*((y&63)>>3) + (y>>6)*2048
+                xa = x>>3
+                scr_ofs = xa + y_ofs
                 bit = 2**(7-x&7)
-                # ^^^ TODO: prawie dziala jeszcze bit 0/1 zal ktory kolor - cos tu zle wtf
-                if rgbzx != most_frequent_color:
+                rgb = im.getpixel((x, y))
+                rgbzx = self.find_nearest_zx_color(rgb, palette)
+                if rgbzx != mfc[ya][xa]:
                     data[scr_ofs] |= bit # ink (1)
-                else: #no need, already 0-s?
-                    data[scr_ofs] &= 255-bit # paper (0)
+                #else: #no need, already 0-s
+                #    data[scr_ofs] &= 255-bit # paper (0)
 
-        self.write_bin(fn_out, data)
-        
+        if no_attr:
+            data[6144:6912] = [56] * (6912 - 6144) # override attr
+        else:
+            if override_attr_byte != None:
+                data[6144:6912] = [override_attr_byte] * (6912 - 6144) # override attr
+        if fn_out != None and fn_out != "":
+            self.write_bin(fn_out, data)
+        return data
+
     def two_img2zxattr(self, fn1, fn2, fn_out):
         """ ? """
         size = 32, 24
