@@ -27,11 +27,10 @@ class zxtape:
         """
         Read ZX BASIC program from binary file and convert to ASCII text.
         
-        :param filename: source filename.
-        :param per_line: whether to return array of lines or single string with all text separated by '\n'
-        :return: PIL Image in 'P' mode using the given palette.
+        :param filename: source filename
+        :param per_line: whether to return array of lines or single string with whole text
+        :return: array of lines or single string with whole text of BASIC program.
         """
-        # todo: fix: add space before some keywords - more/when? test by real basic examples
         KWMAP = {
             **{i: f'chr({i})' for i in range(32)},
             **{i: kw for i, kw in enumerate([
@@ -110,7 +109,10 @@ class zxtape:
         """
         Read ZX GENS assembler source code from binary file and convert to ASCII text.
 
-        :param file_in: source filename.
+        :param file_in: source filename
+        :param line_nums: whether to add line numbers
+        :param per_line: whether to return array of lines or single string with whole text
+        :return: array of lines or single string with whole text of ASM program.
         """
         try:
             lines = []
@@ -150,11 +152,15 @@ class zxtape:
 
     def tap_append(self, filename: str, tapname: str, rawdata: bytes, start: int, size: int = 0):
         """
-        Append rawdata to ZX *.tap file filename, create if does not exist.
+        Append rawdata to ZX *.tap file as binary block, create if does not exist.
 
-        :param filename: *.tap filename.
+        :param filename: *.tap filename
+        :param tapname: filename used inside tap (10 characters max)
+        :param rawdata: raw data (bytes) to append as "tap" file
+        :param start: start loading address of block in ZX memory
+        :param size: size of block to write (can be spaller than rawdata)
         """
-        if size == 0:
+        if size == 0 or size > len(rawdata):
             size = len(rawdata)
 
         if not os.path.exists(filename):
