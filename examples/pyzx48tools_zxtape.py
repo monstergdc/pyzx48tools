@@ -16,9 +16,9 @@ tape = zxtape()
 
 def demo_basic():
     print("example BASIC program")
-    bas = tape.read_basic('data/BasicNostalgia.bin')
+    bas = tape.basic2text('data/BasicNostalgia.bin')
     print(bas)
-    #bas = tape.read_basic('data/basic2.bin')
+    #bas = tape.basic2text('data/basic2.bin')
     #print(bas)
 
 def demo_gens():

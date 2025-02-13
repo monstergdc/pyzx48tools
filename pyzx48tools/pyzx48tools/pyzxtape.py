@@ -5,7 +5,7 @@
 # upd: 20181118, 29
 # upd: 20181201, 03, 04
 # upd: 20190321, 23, 24
-# upd: 20250209, 10
+# upd: 20250209, 10, 13
 
 from array import array
 import math, os
@@ -16,12 +16,12 @@ class zxtape:
         return None
     
     def gen_y_addr_table(self):
-        """ tool to generate/print in asm friendly format screen addresses for each line """
+        """ tool to generate/print in asm friendly format addresses for each screen line of ZX Spectrum """
         for y in range(192):
             ya = (y & 7) * 256 + ((y >> 3) & 7) * 32 + (y >> 6) * 2048
             print('dw', ya, ';', y)
 
-    def read_basic(self, filename: str, per_line: bool = False):
+    def basic2text(self, filename: str, per_line: bool = False):
         """ read ZX BASIC program from binary file and convert to ASCII text """
         # todo: fix: jakis syf na koncu?
         # todo: fix: add space before some keywords - more/when? test by real basic examples

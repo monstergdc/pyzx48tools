@@ -13,6 +13,10 @@ for now:
 **pip install dist/pyzx48tools-0.1.0-py3-none-any.whl
 
 
+## Docs
+
+[docs are here](docs/index.html)
+
 ## Examples
 
 - ZX Spectrum *.scr images converter (eg. to *.png, *.jpg, *.bmp) and some more manipulation tools.
@@ -45,7 +49,7 @@ tape = zxtape()
 
 # --- read BASIC program
 
-bas = tape.read_basic('data/BasicNostalgia.bin')
+bas = tape.basic2text('data/BasicNostalgia.bin')
 print(bas)
 
 # --- read GENS assembler source
