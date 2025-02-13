@@ -17,7 +17,7 @@ for now:
 
 [docs are here](https://monstergdc.github.io/pyzx48tools/docs/index.html)
 
-... and also in docs folder.
+... and also in [docs](/docs) folder.
 
 ## Examples
 
