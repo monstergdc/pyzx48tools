@@ -22,8 +22,14 @@ class zxtape:
             print('dw', ya, ';', y)
 
     def basic2text(self, filename: str, per_line: bool = False):
-        """ read ZX BASIC program from binary file and convert to ASCII text """
-        # todo: fix: jakis syf na koncu?
+        """
+        Read ZX BASIC program from binary file and convert to ASCII text.
+        
+        :param filename:  source filename.
+        :param per_line: whether to return array of lines or single string with all text separated by '\n'
+        :return: PIL Image in 'P' mode using the given palette.
+        """
+
         # todo: fix: add space before some keywords - more/when? test by real basic examples
         KWMAP = {
             **{i: f'chr({i})' for i in range(32)},
