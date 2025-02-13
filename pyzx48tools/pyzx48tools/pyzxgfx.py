@@ -6,7 +6,7 @@
 # upd: 20181118, 29
 # upd: 20181201, 03, 04
 # upd: 20190321, 23, 24
-# upd: 20250209, 10, 11, 12
+# upd: 20250209, 10, 11, 12, 13
 
 from PIL import Image, ImageDraw
 from array import array
@@ -19,26 +19,26 @@ class zxgfx:
         self.set_color_mode_std()
 
     def set_color_mode(self, C_0, C_1):
-        """ ? """
+        """ Initialize internall array of ZX colors. """
         self.ZXC = [(0,0,0), (0,0,C_0), (C_0,0,0), (C_0,0,C_0), (0,C_0,0), (0,C_0,C_0), (C_0,C_0,0), (C_0,C_0,C_0),
                     (0,0,0), (0,0,C_1), (C_1,0,0), (C_1,0,C_1), (0,C_1,0), (0,C_1,C_1), (C_1,C_1,0), (C_1,C_1,C_1)]
         self.ZXC0 = copy.deepcopy(self.ZXC[0:7+1])
         self.ZXC1 = copy.deepcopy(self.ZXC[8:])
 
     def set_color_mode_std(self):
-        """ ? """
+        """ Set color mode to standard. """
         self.set_color_mode(192, 252)
 
     def set_color_mode_light(self):
-        """ ? """
+        """ Set color mode to light. """
         self.set_color_mode(215, 255)
 
     def get_zxpalette(self):
-        """ ? """
+        """ Get whole ZX Spectrum palette. """
         return copy.deepcopy(self.ZXC)
 
     def get_zxcolor(self, index, bright):
-        """ ? """
+        """ Get single ZX Spectrum color by index and brightness """
         if index < 0 or index > 7:
             return None
         if bright == 0:
@@ -47,7 +47,7 @@ class zxgfx:
             return self.ZXC1(index)
     
     def bytecolor(self, ink, paper, bright, flash=0):
-        """ ? """
+        """ Calculate byte value fo ZX Spectrum color (attribute). """
         return (ink & 7) + (paper & 7)*8 + 64*(bright & 1) + 128*(flash & 1)
 
     def frombytecolor(self, attr):
@@ -62,7 +62,7 @@ class zxgfx:
         return c_bright, c_paper, c_ink
 
     def get_subset(self, data, start=0, length=None, end=None):
-        """ extract subset of binary data """
+        """ Extract subset of binary data. """
         if not isinstance(data, (bytes, bytearray)):
             raise TypeError("Data must be bytes or bytearray")
         data_size = len(data)
@@ -79,12 +79,12 @@ class zxgfx:
         return copy.deepcopy(data[start:end])
 
     def write_bin(self, fn_out, data):
-        """ write binary data to file """
+        """ Write binary data to file. """
         with open(fn_out, "wb") as nfile:
             nfile.write((''.join(chr(i) for i in data)).encode('charmap'))
 
     def write_text(self, fn_out, data):
-        """ write text data to file """
+        """ Write text data to file. """
         try:
             with open(fn_out, "w") as text_file:
                 text_file.write(data)
@@ -95,7 +95,7 @@ class zxgfx:
             return -1
 
     def zx2image(self, fn, fn_out="", bw=False):
-        """ convert ZX image (scr, 6912 bytes) to standard image """
+        """ Convert ZX image (scr, 6912 bytes) to standard image. """
         data = array('B')
         with open(fn, 'rb') as f:
             data = f.read()
@@ -139,11 +139,11 @@ class zxgfx:
         return img.convert("RGB").quantize(palette=palette_img, dither=dither)
 
     def color_distance(self, c1, c2):
-        """Calculate the Euclidean distance between two RGB colors."""
+        """ Calculate the Euclidean distance between two RGB colors. """
         return math.sqrt(sum((a - b) ** 2 for a, b in zip(c1, c2)))
 
     def find_colors(self, im, x, y):
-        """Find the most frequent color and the highest-contrast second frequent color in an 8x8 region."""
+        """ Find the most frequent color and the highest-contrast second frequent color in an 8x8 region. """
         color_counts = Counter()
         # Collect colors in the 8x8 block
         for y8 in range(8):
@@ -171,22 +171,23 @@ class zxgfx:
         return most_frequent, max_contrast_color
 
     def find_nearest_zx_color(self, target, colors):
-        """ Find the nearest color to the target in the given list."""
+        """ Find the nearest color to the target in the given list. """
         return min(colors, key=lambda color: self.color_distance(target, color))
 
     def find_nearest_zx_color_index(self, target, colors):
-        """ Find the index of the nearest color to the target in the given list."""
+        """ Find the index of the nearest color to the target in the given list. """
         return min(range(len(colors)), key=lambda i: self.color_distance(target, colors[i]))
 
     def get_pixels(self, data):
-        """ ? """
+        """ Extract only pixels information from ZX Spectrum image. """
         return self.get_subset(self, data, start=0, length=6144)
 
     def get_attributes(self, data):
-        """ ? """
+        """ Extract only attributes information from ZX Spectrum image. """
         return self.get_subset(self, data, start=6144, length=768)
 
     def crop_image(self, im, x, y, w, h):
+        """ ? """
         img_width, img_height = im.size
         x = max(0, min(x, img_width))
         y = max(0, min(y, img_height))
@@ -196,7 +197,7 @@ class zxgfx:
         return cropped_im
 
     def image2zx(self, fn, im_in=None, fn_out=None, no_attr=False, override_attr_byte=None, dither=Image.FLOYDSTEINBERG, altpalette=None):
-        """ convert image to ZX .scr format, optionally save, also return raw data """
+        """ Convert image to ZX .scr format, optionally save, also return raw data. """
         if altpalette == None:
             palette = self.ZXC
         else:
@@ -360,8 +361,10 @@ class zxgfx:
                 data[i+6144] = data2[i+6144]
         self.write_bin(fn_out, data)
 
-    def img2zxfont(self, file_in: str, file_out: str, charcount: int):
-        """ ? """
+    def img2zxfont(self, file_in: str, file_out: str, charcount: int = 96):
+        """ Convert image of up to 768x8 pixels into ZX Spectrum font 8x8. """
+        if charcount < 1 or charcount > 96:
+            raise Exception("Bad charcount, must be 1-96")
         data = [0] * 768
         img = Image.open(file_in).convert("1")  # Convert image to 1-bit
         pixels = img.load()
@@ -382,9 +385,9 @@ class zxgfx:
             f.write(bytearray(data[:charcount * 8]))
 
     def zxfont2img(self, file_in: str, file_out: str, charcount: int = 96):
-        """ ? """
+        """ Convert ZX Spectrum font into standard image up to 768x8 pixels. """
         if charcount < 1 or charcount > 96:
-            raise Exception("Bad charcount, max 96")
+            raise Exception("Bad charcount, must be 1-96")
         
         width = 8 * charcount
         height = 8

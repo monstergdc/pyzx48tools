@@ -14,7 +14,6 @@
 
 2. gfx
 .- [!] fix image2zx
-.- get_subset -> use
 - add more (tools from zx projects) == F:\ZXSpectrum4\zx-gen-32x24\src
 - consistent code style
 - font 16x16
