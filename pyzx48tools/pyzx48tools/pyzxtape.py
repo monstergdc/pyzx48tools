@@ -16,7 +16,9 @@ class zxtape:
         return None
     
     def gen_y_addr_table(self):
-        """ tool to generate/print in asm friendly format addresses for each screen line of ZX Spectrum """
+        """
+        Tool to generate/print in asm friendly format addresses for each screen line of ZX Spectrum.
+        """
         for y in range(192):
             ya = (y & 7) * 256 + ((y >> 3) & 7) * 32 + (y >> 6) * 2048
             print('dw', ya, ';', y)
@@ -25,11 +27,10 @@ class zxtape:
         """
         Read ZX BASIC program from binary file and convert to ASCII text.
         
-        :param filename:  source filename.
+        :param filename: source filename.
         :param per_line: whether to return array of lines or single string with all text separated by '\n'
         :return: PIL Image in 'P' mode using the given palette.
         """
-
         # todo: fix: add space before some keywords - more/when? test by real basic examples
         KWMAP = {
             **{i: f'chr({i})' for i in range(32)},
@@ -105,8 +106,12 @@ class zxtape:
             print(f"Error reading file: {e}")
             return None
 
-    def gens2text(self, file_in: str, line_nums: bool = True, per_line: bool = False) -> str:
-        """ read ZX GENS source code from binary file and convert to ASCII text """
+    def gens2text(self, file_in: str, line_nums: bool = True, per_line: bool = False):
+        """
+        Read ZX GENS assembler source code from binary file and convert to ASCII text.
+
+        :param file_in: source filename.
+        """
         try:
             lines = []
             with open(file_in, "rb") as f:
@@ -144,7 +149,11 @@ class zxtape:
             return None
 
     def tap_append(self, filename: str, tapname: str, rawdata: bytes, start: int, size: int = 0):
-        """ append rawdata to ZX *.tap file filename, create if does not exist """
+        """
+        Append rawdata to ZX *.tap file filename, create if does not exist.
+
+        :param filename: *.tap filename.
+        """
         if size == 0:
             size = len(rawdata)
 

@@ -15,7 +15,7 @@ for now:
 
 ## Docs
 
-[docs are here](https://monstergdc.github.io/pyzx48tools/docs/pyzx48tools.html#zxtape)
+[docs are here](https://monstergdc.github.io/pyzx48tools/docs/index.html)
 
 ... and also in docs folder.
 
