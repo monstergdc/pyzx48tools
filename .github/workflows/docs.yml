@@ -26,6 +26,10 @@ jobs:
       # ADJUST THIS: install all dependencies (including pdoc)
       ##- run: pip install -e .
       - run: pip install pdoc pillow setuptools wheel twine
+      # ?
+      - run: python setup.py sdist bdist_wheel
+      - run: pip install dist/pyzx48tools-0.1.0-py3-none-any.whl
+
       # ADJUST THIS: build your documentation into docs/.
       # We use a custom build script for pdoc itself, ideally you just run `pdoc -o docs/ ...` here.
       ##- run: python docs/make.py
