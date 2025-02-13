@@ -9,15 +9,15 @@ This project is licensed under the GNU Lesser General Public License v3.0 (LGPL-
 
 ## Installation
 
-for now:
+For now:
 **pip install dist/pyzx48tools-0.1.0-py3-none-any.whl
 
 
 ## Docs
 
-[docs are here](https://monstergdc.github.io/pyzx48tools/docs/index.html)
+[Docs are here](https://monstergdc.github.io/pyzx48tools/docs/)
 
-... and also in [docs](/docs) folder.
+... and also in docs folder.
 
 ## Examples
 
