@@ -19,7 +19,12 @@ class zxgfx:
         self.set_color_mode_std()
 
     def set_color_mode(self, C_0, C_1):
-        """ Initialize internall array of ZX colors. """
+        """
+        Initialize internall array of ZX colors.
+        
+        :param C_0: byte color coordinate (any of R, G, B) for normal ZX Spectrum colors
+        :param C_1: byte color coordinate (any of R, G, B) for bright ZX Spectrum colors
+        """
         self.ZXC = [(0,0,0), (0,0,C_0), (C_0,0,0), (C_0,0,C_0), (0,C_0,0), (0,C_0,C_0), (C_0,C_0,0), (C_0,C_0,C_0),
                     (0,0,0), (0,0,C_1), (C_1,0,0), (C_1,0,C_1), (0,C_1,0), (0,C_1,C_1), (C_1,C_1,0), (C_1,C_1,C_1)]
         self.ZXC0 = copy.deepcopy(self.ZXC[0:7+1])
@@ -38,20 +43,36 @@ class zxgfx:
         return copy.deepcopy(self.ZXC)
 
     def get_zxcolor(self, index, bright):
-        """ Get single ZX Spectrum color by index and brightness """
+        """
+        Get single ZX Spectrum color by index and brightness.
+        
+        :param index: ZX Spectrum color index (0-7)
+        :param bright: ZX Spectrum color brightness (0-1 or False..True)
+        """
         if index < 0 or index > 7:
             return None
-        if bright == 0:
-            return self.ZXC0(index)
-        else:
+        if bright != 0 or bright == True:
             return self.ZXC1(index)
+        else:
+            return self.ZXC0(index)
     
     def bytecolor(self, ink, paper, bright, flash=0):
-        """ Calculate byte value fo ZX Spectrum color (attribute). """
+        """
+        Calculate byte value fo ZX Spectrum color (attribute).
+        
+        :param ink: ink value (0-7)
+        :param paper: paper value (0-7)
+        :param bright: bright value (0-1)
+        :param flash: flash value (0-1)
+        """
         return (ink & 7) + (paper & 7)*8 + 64*(bright & 1) + 128*(flash & 1)
 
     def frombytecolor(self, attr):
-        """ ? """
+        """
+        Get paper as RBG, ink ask RGB from ZX Spectrum color (attribute) byte value
+
+        :param attr: ZX Spectrum color (attribute) byte value
+        """
         c_bright = attr&64
         if c_bright == 0:
             c_ink = self.ZXC0[attr&7]
@@ -59,10 +80,16 @@ class zxgfx:
         else:
             c_ink = self.ZXC1[attr&7]
             c_paper = self.ZXC1[(attr>>3)&7]
-        return c_bright, c_paper, c_ink
+        return c_paper, c_ink
 
     def get_subset(self, data, start=0, length=None, end=None):
-        """ Extract subset of binary data. """
+        """
+        Extract subset of binary data.
+        :pram data: ?
+        :pram start: ?
+        :pram length: ?
+        :pram end: ?
+        """
         if not isinstance(data, (bytes, bytearray)):
             raise TypeError("Data must be bytes or bytearray")
         data_size = len(data)
@@ -79,12 +106,22 @@ class zxgfx:
         return copy.deepcopy(data[start:end])
 
     def write_bin(self, fn_out, data):
-        """ Write binary data to file. """
+        """
+        Write binary data to file.
+
+        :pram fn_out: ?
+        :pram data: ?
+        """
         with open(fn_out, "wb") as nfile:
             nfile.write((''.join(chr(i) for i in data)).encode('charmap'))
 
     def write_text(self, fn_out, data):
-        """ Write text data to file. """
+        """
+        Write text data to file.
+
+        :pram fn_out: ?
+        :pram data: ?
+        """
         try:
             with open(fn_out, "w") as text_file:
                 text_file.write(data)
@@ -95,7 +132,13 @@ class zxgfx:
             return -1
 
     def zx2image(self, fn, fn_out="", bw=False):
-        """ Convert ZX image (scr, 6912 bytes) to standard image. """
+        """
+        Convert ZX image (scr format, 6912 bytes) to standard image (PNG, JPG, etc.).
+
+        :pram fn: ?
+        :pram fn_out: ?
+        :pram bw: ?
+        """
         data = array('B')
         with open(fn, 'rb') as f:
             data = f.read()
@@ -110,9 +153,9 @@ class zxgfx:
                 b = data[scr_ofs+x]
                 attr = data[attr_ofs_0+x]
                 if bw:
-                    c_bright, c_paper, c_ink = self.frombytecolor(56+64)
+                    c_paper, c_ink = self.frombytecolor(56+64)
                 else:
-                    c_bright, c_paper, c_ink = self.frombytecolor(attr)
+                    c_paper, c_ink = self.frombytecolor(attr)
                 for bit in range(8):
                     if b&(2**(7-bit)) != 0:
                         draw.point((x*8+bit, y), fill=c_ink)
@@ -139,7 +182,12 @@ class zxgfx:
         return img.convert("RGB").quantize(palette=palette_img, dither=dither)
 
     def color_distance(self, c1, c2):
-        """ Calculate the Euclidean distance between two RGB colors. """
+        """
+        Calculate the Euclidean distance between two RGB colors.
+
+        :param c1: color #1 RGB mode
+        :param c2: color #2 RGB mode
+        """
         return math.sqrt(sum((a - b) ** 2 for a, b in zip(c1, c2)))
 
     def find_colors(self, im, x, y):
@@ -187,7 +235,7 @@ class zxgfx:
         return self.get_subset(self, data, start=6144, length=768)
 
     def crop_image(self, im, x, y, w, h):
-        """ ? """
+        """ Crop image. """
         img_width, img_height = im.size
         x = max(0, min(x, img_width))
         y = max(0, min(y, img_height))
