@@ -41,3 +41,5 @@ del zxfont-zxstd-rework2-gdc.png
 
 del font-zxstd-back.raw
 
+del ytable.bin
+del ytable.txt

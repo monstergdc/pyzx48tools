@@ -5,7 +5,7 @@
 # (c)2018, 2025 MoNsTeR/GDC, Noniewicz.com, Jakub Noniewicz
 # cre: 20181117
 # upd: 20181118, 29
-# upd: 20250209, 10
+# upd: 20250209, 10, 14
 
 # TODO:
 # ?
@@ -34,9 +34,14 @@ def demo_tap():
     tape.tap_append(mytap, "image6144", rawdata, 16384, size=6144) # pixels only
     print(f"generated example tap file: {mytap}")
 
+def demo_y():
+    tape.gen_y_addr_table("ytable.txt", False)
+    tape.gen_y_addr_table("ytable.bin")
+
 
 if __name__ == '__main__':
     demo_basic()
     demo_gens()
     demo_tap()
+    demo_y()
 
