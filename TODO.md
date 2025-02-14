@@ -8,7 +8,6 @@
 
 1. tap
 - future: tape read
-- future: generate tape loader? (clear XXX-1: LOAD "" CODE: randomize usr XXX
 - future: tzx?
 - future: bas - also show vars?
 

@@ -9,6 +9,7 @@
 
 from array import array
 import math, os
+import struct
 
 from pyzx48tools.pyzxtools import write_bin, write_text
 
@@ -170,6 +171,50 @@ class zxtape:
         except Exception as e:
             print(f"Error reading file: {e}")
             return None
+
+
+    def create_tap_bas_loader(self, filename: str, intapname: str, loadaddr: int, autostart: bool = False):
+        """
+        Create ZX *.tap file with bare minimun BASIC loader, like:
+        1 CLEAR addr-1 : LOAD "" CODE : RANDOMIZE USR addr
+
+        :param filename: *.tap file name to create
+        :param intapname: BASIC program file name inside *.tap file
+        :param loadaddr: load/run address of CODE block to load
+        :param autostart: whether this BASIC program should autostart
+        """
+
+        def calc_crc(data):
+            crc = 0
+            for b in data:
+                crc ^= b
+            return crc
+
+        loadaddr_b_1 = struct.pack("<H", loadaddr-1)  # "<H" means little-endian unsigned short (16-bit)
+        loadaddr_b = struct.pack("<H", loadaddr)  # "<H" means little-endian unsigned short (16-bit)
+        basic_line = (
+            b'\x00\x01\x00\x00'  # Line number high byte (0), low byte (1), Length of the line (2B?) (to be filled later)
+            b'\xFD' + str(loadaddr - 1).encode('ascii') + b'\x0E\x00\x00' + loadaddr_b_1 + b'\x00'  # CLEAR XXX-1
+            b'\x3A\xEF\x22\x22\xAF'  # ': LOAD "" CODE'
+            b'\x3A\xF9\xC0' + str(loadaddr).encode('ascii') + b'\x0E\x00\x00' + loadaddr_b + b'\x00' + b'\x0D'  # ': RANDOMIZE USR XXX' + End of line
+        )
+        basic_line = basic_line[:2] + struct.pack("<H", len(basic_line)-4) + basic_line[4:]
+        program_data = b'\xFF' + basic_line
+        prog_name_bytes = intapname.encode('ascii')[:10].ljust(10, b'\x20')  # Ensure at most 10 bytes + Pad with space bytes if needed
+        if autostart:
+            ps = 0x0001
+        else:
+            ps = 0x8032
+        header = struct.pack("<B10sHHH", 0, prog_name_bytes, len(program_data)-1, ps, len(program_data)-1) # todo: why 2x -1 ?
+        header_block = struct.pack("<H", len(header) + 2) + struct.pack("<B", 0) + header + struct.pack("<B", calc_crc(header))
+        data_block = struct.pack("<H", len(program_data) + 2-1) + program_data + struct.pack("<B", calc_crc(program_data)) # todo: why +2-1 ?
+
+        # todo: no save opt + append to tap
+        with open(filename, "wb") as f:
+            f.write(header_block)
+            f.write(data_block)
+        return header_block + data_block
+
 
     def tap_append(self, filename: str, tapname: str, rawdata: bytes, start: int, size: int = 0):
         """
