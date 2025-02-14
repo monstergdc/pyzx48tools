@@ -6,13 +6,15 @@
 # upd: 20181118, 29
 # upd: 20181201, 03, 04
 # upd: 20190321, 23, 24
-# upd: 20250209, 10, 11, 12, 13
+# upd: 20250209, 10, 11, 12, 13, 14
 
 from PIL import Image, ImageDraw
 from array import array
 from collections import Counter
 import math, os
 import copy
+
+from pyzx48tools.pyzxtools import write_bin, write_text
 
 class zxgfx:
     def __init__(self):
@@ -104,32 +106,6 @@ class zxgfx:
         else:
             raise ValueError("Either length or end must be provided")
         return copy.deepcopy(data[start:end])
-
-    def write_bin(self, fn_out, data):
-        """
-        Write binary data to file.
-
-        :pram fn_out: ?
-        :pram data: ?
-        """
-        with open(fn_out, "wb") as nfile:
-            nfile.write((''.join(chr(i) for i in data)).encode('charmap'))
-
-    def write_text(self, fn_out, data):
-        """
-        Write text data to file.
-
-        :pram fn_out: ?
-        :pram data: ?
-        """
-        try:
-            with open(fn_out, "w") as text_file:
-                text_file.write(data)
-                text_file.close()
-            return 0
-        except Exception as e:
-            print(f"Error saving file: {e}")
-            return -1
 
     def zx2image(self, fn, fn_out="", bw=False):
         """
@@ -302,7 +278,7 @@ class zxgfx:
             if override_attr_byte != None:
                 data[6144:6912] = [override_attr_byte] * (6912 - 6144) # override attr
         if fn_out != None and fn_out != "":
-            self.write_bin(fn_out, data)
+            write_bin(fn_out, data)
         return data
 
     def two_img2zxattr(self, fn1, fn2, fn_out):
@@ -344,7 +320,7 @@ class zxgfx:
                 i = x + 32 * y
                 data[i+6144] = self.bytecolor(ink=ink, paper=paper, bright=bright, flash=1)
 
-        self.write_bin(fn_out, data)
+        write_bin(fn_out, data)
 
     def attr2zx(self, mode, fn_out, y0=0, x0=0, ymax=24, xmax=32):
         """ unintended consequences - cool flash effects w/o zx code """
@@ -388,7 +364,7 @@ class zxgfx:
                         ii2 = 0
                     data[i+6144] = self.bytecolor(ink=ii1, paper=ii2, bright=1, flash=1) # two circles
 
-        self.write_bin(fn_out, data)
+        write_bin(fn_out, data)
 
     def zx2mix(self, fn1, fn2, fn_out, y0=0, x0=0, ymax=24, xmax=32):
         """ mix two attrs """
@@ -407,7 +383,7 @@ class zxgfx:
                 x = x1 + x0
                 i = x + 32 * y
                 data[i+6144] = data2[i+6144]
-        self.write_bin(fn_out, data)
+        write_bin(fn_out, data)
 
     def img2zxfont(self, file_in: str, file_out: str, charcount: int = 96):
         """ Convert image of up to 768x8 pixels into ZX Spectrum font 8x8. """

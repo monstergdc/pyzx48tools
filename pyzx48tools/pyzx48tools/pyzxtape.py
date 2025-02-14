@@ -5,23 +5,44 @@
 # upd: 20181118, 29
 # upd: 20181201, 03, 04
 # upd: 20190321, 23, 24
-# upd: 20250209, 10, 13
+# upd: 20250209, 10, 13, 14
 
 from array import array
 import math, os
+
+from pyzx48tools.pyzxtools import write_bin, write_text
+
 
 class zxtape:
     def __init__(self):
         # nothing?
         return None
     
-    def gen_y_addr_table(self):
+    def gen_y_addr_table(self, filename: str = "", output_bin: bool = True):
         """
-        Tool to generate/print in asm friendly format addresses for each screen line of ZX Spectrum.
+        Generate addresses for each screen line of ZX Spectrum,
+        eirther in asm friendly format or as binary data.
+
+        :param filename: destination filename (optional)
+        :param output_bin: outpu as binary (otherwise as asm text)?
+        :return: array of 16bit words with screen addresses.
         """
+        # todo: fin: binary
+        lines = []
+        binary = [0] * 384
         for y in range(192):
             ya = (y & 7) * 256 + ((y >> 3) & 7) * 32 + (y >> 6) * 2048
-            print('dw', ya, ';', y)
+            #print('dw', ya, ';', y)
+            binary[y*2+0] = ya&255
+            binary[y*2+1] = (ya>>8)&255
+            if not output_bin:
+                lines.append(f'dw {ya} ;{y}')
+        if filename != "":
+            if output_bin:
+                write_bin(filename, binary)
+            else:
+                write_text(filename, "\n".join(lines))
+        return binary
 
     def basic2text(self, filename: str, per_line: bool = False):
         """
@@ -105,18 +126,18 @@ class zxtape:
             print(f"Error reading file: {e}")
             return None
 
-    def gens2text(self, file_in: str, line_nums: bool = True, per_line: bool = False):
+    def gens2text(self, filename: str, line_nums: bool = True, per_line: bool = False):
         """
         Read ZX GENS assembler source code from binary file and convert to ASCII text.
 
-        :param file_in: source filename
+        :param filename: source filename
         :param line_nums: whether to add line numbers
         :param per_line: whether to return array of lines or single string with whole text
         :return: array of lines or single string with whole text of ASM program.
         """
         try:
             lines = []
-            with open(file_in, "rb") as f:
+            with open(filename, "rb") as f:
                 while True:
                     b1 = f.read(1)
                     b2 = f.read(1)
@@ -152,13 +173,13 @@ class zxtape:
 
     def tap_append(self, filename: str, tapname: str, rawdata: bytes, start: int, size: int = 0):
         """
-        Append rawdata to ZX *.tap file as binary block, create if does not exist.
+        Append rawdata to ZX *.tap file as binary block (for LOAD "" CODE), create file if it does not exist.
 
         :param filename: *.tap filename
         :param tapname: filename used inside tap (10 characters max)
         :param rawdata: raw data (bytes) to append as "tap" file
-        :param start: start loading address of block in ZX memory
-        :param size: size of block to write (can be spaller than rawdata)
+        :param start: loading address of block in ZX memory
+        :param size: size of block to write (can be smaller than rawdata)
         """
         if size == 0 or size > len(rawdata):
             size = len(rawdata)
