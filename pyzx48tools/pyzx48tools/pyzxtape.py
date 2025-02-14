@@ -25,10 +25,9 @@ class zxtape:
         eirther in asm friendly format or as binary data.
 
         :param filename: destination filename (optional)
-        :param output_bin: outpu as binary (otherwise as asm text)?
-        :return: array of 16bit words with screen addresses.
+        :param output_bin: if True output as binary (otherwise as asm text)
+        :return: array of 192 16bit words with screen addresses.
         """
-        # todo: fin: binary
         lines = []
         binary = [0] * 384
         for y in range(192):
@@ -173,15 +172,16 @@ class zxtape:
             return None
 
 
-    def create_tap_bas_loader(self, filename: str, intapname: str, loadaddr: int, autostart: bool = False):
+    def create_tap_bas_loader(self, filename: str, tapname: str, loadaddr: int, autostart: bool = False):
         """
         Create ZX *.tap file with bare minimun BASIC loader, like:
         1 CLEAR addr-1 : LOAD "" CODE : RANDOMIZE USR addr
 
         :param filename: *.tap file name to create
-        :param intapname: BASIC program file name inside *.tap file
+        :param tapname: BASIC program file name inside *.tap file
         :param loadaddr: load/run address of CODE block to load
         :param autostart: whether this BASIC program should autostart
+        :return: raw data as written to file
         """
 
         def calc_crc(data):
@@ -193,7 +193,7 @@ class zxtape:
         loadaddr_b_1 = struct.pack("<H", loadaddr-1)  # "<H" means little-endian unsigned short (16-bit)
         loadaddr_b = struct.pack("<H", loadaddr)  # "<H" means little-endian unsigned short (16-bit)
         basic_line = (
-            b'\x00\x01\x00\x00'  # Line number high byte (0), low byte (1), Length of the line (2B?) (to be filled later)
+            b'\x00\x01\x00\x00'  # Line number high byte (0), low byte (1), Length of the line (to be filled later)
             b'\xFD' + str(loadaddr - 1).encode('ascii') + b'\x0E\x00\x00' + loadaddr_b_1 + b'\x00'  # CLEAR XXX-1
             b'\x3A\xEF\x22\x22\xAF'  # ': LOAD "" CODE'
             b'\x3A\xF9\xC0' + str(loadaddr).encode('ascii') + b'\x0E\x00\x00' + loadaddr_b + b'\x00' + b'\x0D'  # ': RANDOMIZE USR XXX' + End of line
@@ -209,7 +209,6 @@ class zxtape:
         header_block = struct.pack("<H", len(header) + 2) + struct.pack("<B", 0) + header + struct.pack("<B", calc_crc(header))
         data_block = struct.pack("<H", len(program_data) + 2-1) + program_data + struct.pack("<B", calc_crc(program_data)) # todo: why +2-1 ?
 
-        # todo: no save opt + append to tap
         with open(filename, "wb") as f:
             f.write(header_block)
             f.write(data_block)

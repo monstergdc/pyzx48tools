@@ -161,13 +161,21 @@ class zxgfx:
         """
         Calculate the Euclidean distance between two RGB colors.
 
-        :param c1: color #1 RGB mode
-        :param c2: color #2 RGB mode
+        :param c1: color #1 as (R, G, B) tuple
+        :param c2: color #2 as (R, G, B) tuple
+        :return: color distance.
         """
         return math.sqrt(sum((a - b) ** 2 for a, b in zip(c1, c2)))
 
     def find_colors(self, im, x, y):
-        """ Find the most frequent color and the highest-contrast second frequent color in an 8x8 region. """
+        """
+        Find the most frequent color and the highest-contrast second frequent color in an 8x8 region.
+
+        :param im: ?
+        :param x: ?
+        :param y: ?
+        :return: ?.
+        """
         color_counts = Counter()
         # Collect colors in the 8x8 block
         for y8 in range(8):
@@ -195,23 +203,33 @@ class zxgfx:
         return most_frequent, max_contrast_color
 
     def find_nearest_zx_color(self, target, colors):
-        """ Find the nearest color to the target in the given list. """
+        """
+        Find the nearest color to the target in the given list.
+        """
         return min(colors, key=lambda color: self.color_distance(target, color))
 
     def find_nearest_zx_color_index(self, target, colors):
-        """ Find the index of the nearest color to the target in the given list. """
+        """
+        Find the index of the nearest color to the target in the given list.
+        """
         return min(range(len(colors)), key=lambda i: self.color_distance(target, colors[i]))
 
     def get_pixels(self, data):
-        """ Extract only pixels information from ZX Spectrum image. """
+        """
+        Extract only pixels information from ZX Spectrum image.
+        """
         return self.get_subset(self, data, start=0, length=6144)
 
     def get_attributes(self, data):
-        """ Extract only attributes information from ZX Spectrum image. """
+        """
+        Extract only attributes information from ZX Spectrum image.
+        """
         return self.get_subset(self, data, start=6144, length=768)
 
     def crop_image(self, im, x, y, w, h):
-        """ Crop image. """
+        """
+        Crop PIL image.
+        """
         img_width, img_height = im.size
         x = max(0, min(x, img_width))
         y = max(0, min(y, img_height))
@@ -221,7 +239,9 @@ class zxgfx:
         return cropped_im
 
     def image2zx(self, fn, im_in=None, fn_out=None, no_attr=False, override_attr_byte=None, dither=Image.FLOYDSTEINBERG, altpalette=None):
-        """ Convert image to ZX .scr format, optionally save, also return raw data. """
+        """
+        Convert image to ZX .scr format, optionally save, also return raw data.
+        """
         if altpalette == None:
             palette = self.ZXC
         else:
@@ -323,7 +343,9 @@ class zxgfx:
         write_bin(fn_out, data)
 
     def attr2zx(self, mode, fn_out, y0=0, x0=0, ymax=24, xmax=32):
-        """ unintended consequences - cool flash effects w/o zx code """
+        """
+        Some unintended consequences of experimenting - create cool flash effects w/o zx code and save as .scr ZX image file.
+        """
         data = [0] * 6912 # 6144+768
 
         for y1 in range(ymax):
@@ -367,7 +389,9 @@ class zxgfx:
         write_bin(fn_out, data)
 
     def zx2mix(self, fn1, fn2, fn_out, y0=0, x0=0, ymax=24, xmax=32):
-        """ mix two attrs """
+        """
+        mix two attrs ?
+        """
         data = [0] * 6912 # 6144+768
         data1 = array('B')
         with open(fn1, 'rb') as f:
@@ -386,7 +410,13 @@ class zxgfx:
         write_bin(fn_out, data)
 
     def img2zxfont(self, file_in: str, file_out: str, charcount: int = 96):
-        """ Convert image of up to 768x8 pixels into ZX Spectrum font 8x8. """
+        """
+        Convert image of up to 768x8 pixels into ZX Spectrum font 8x8.
+
+        :param file_in: input gfx (e. PNG) file
+        :param file_out: output binary file
+        :param charcount: count of 8x8 pixel characters to process (1-96)        
+        """
         if charcount < 1 or charcount > 96:
             raise Exception("Bad charcount, must be 1-96")
         data = [0] * 768
@@ -409,7 +439,13 @@ class zxgfx:
             f.write(bytearray(data[:charcount * 8]))
 
     def zxfont2img(self, file_in: str, file_out: str, charcount: int = 96):
-        """ Convert ZX Spectrum font into standard image up to 768x8 pixels. """
+        """
+        Convert ZX Spectrum font (up to 768 bytes) into standard 1-bit image up to 768x8 pixels.
+
+        :param file_in: input binary file
+        :param file_out: output gfx (e. PNG) file
+        :param charcount: count of 8x8 pixel characters to process (1-96)
+        """
         if charcount < 1 or charcount > 96:
             raise Exception("Bad charcount, must be 1-96")
         
