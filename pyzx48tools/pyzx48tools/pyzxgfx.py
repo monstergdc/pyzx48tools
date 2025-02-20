@@ -6,7 +6,7 @@
 # upd: 20181118, 29
 # upd: 20181201, 03, 04
 # upd: 20190321, 23, 24
-# upd: 20250209, 10, 11, 12, 13, 14
+# upd: 20250209, 10, 11, 12, 13, 14, 20
 
 from PIL import Image, ImageDraw
 from array import array
@@ -302,7 +302,14 @@ class zxgfx:
         return data
 
     def two_img2zxattr(self, fn1, fn2, fn_out):
-        """ ? """
+        """
+        Mix two 32x24 images into single ZX Spectrum image taking source pixels as attributes
+        and mixing them in a way so the resulting image "flashes" one source image or the other.
+
+        :param fn1: source image 32x24 #1 (e. PNG)
+        :param fn2: source image 32x24 #2 (e. PNG)
+        :param fn_out: output ZX Spectrum image (*.scr)
+        """
         size = 32, 24
         im1 = Image.open(fn1)
         im1 = im1.convert('RGB')
@@ -345,6 +352,13 @@ class zxgfx:
     def attr2zx(self, mode, fn_out, y0=0, x0=0, ymax=24, xmax=32):
         """
         Some unintended consequences of experimenting - create cool flash effects w/o zx code and save as .scr ZX image file.
+
+        :param mode: ?
+        :param fn_out: ?
+        :param y0: ?
+        :param x0: ?
+        :param ymax: ?
+        :param xmax: ?
         """
         data = [0] * 6912 # 6144+768
 
@@ -411,7 +425,7 @@ class zxgfx:
 
     def img2zxfont(self, file_in: str, file_out: str, charcount: int = 96):
         """
-        Convert image of up to 768x8 pixels into ZX Spectrum font 8x8.
+        Convert image of up to 768x8 pixels into ZX Spectrum font 8x8 and saves it to file.
 
         :param file_in: input gfx (e. PNG) file
         :param file_out: output binary file
@@ -440,7 +454,7 @@ class zxgfx:
 
     def zxfont2img(self, file_in: str, file_out: str, charcount: int = 96):
         """
-        Convert ZX Spectrum font (up to 768 bytes) into standard 1-bit image up to 768x8 pixels.
+        Convert ZX Spectrum font (up to 768 bytes) into standard 1-bit image up to 768x8 pixels and saves it to file.
 
         :param file_in: input binary file
         :param file_out: output gfx (e. PNG) file
