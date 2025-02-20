@@ -41,7 +41,11 @@ class zxgfx:
         self.set_color_mode(215, 255)
 
     def get_zxpalette(self):
-        """ Get whole ZX Spectrum palette. """
+        """
+        Get whole ZX Spectrum palette.
+
+        :return: ZX Spectrum equivalent [(R, G, B), (R, G, B), ...] colors
+        """
         return copy.deepcopy(self.ZXC)
 
     def get_zxcolor(self, index, bright):
@@ -50,6 +54,7 @@ class zxgfx:
         
         :param index: ZX Spectrum color index (0-7)
         :param bright: ZX Spectrum color brightness (0-1 or False..True)
+        :return: ZX Spectrum equivalent (R, G, B) color
         """
         if index < 0 or index > 7:
             return None
@@ -66,6 +71,7 @@ class zxgfx:
         :param paper: paper value (0-7)
         :param bright: bright value (0-1)
         :param flash: flash value (0-1)
+        :return: ZX Spectrum color attribute value from flash+bright+paper+ink
         """
         return (ink & 7) + (paper & 7)*8 + 64*(bright & 1) + 128*(flash & 1)
 
@@ -74,6 +80,7 @@ class zxgfx:
         Get paper as RBG, ink ask RGB from ZX Spectrum color (attribute) byte value
 
         :param attr: ZX Spectrum color (attribute) byte value
+        :return: ?
         """
         c_bright = attr&64
         if c_bright == 0:
@@ -87,10 +94,12 @@ class zxgfx:
     def get_subset(self, data, start=0, length=None, end=None):
         """
         Extract subset of binary data.
-        :pram data: ?
-        :pram start: ?
-        :pram length: ?
-        :pram end: ?
+
+        :param data: ?
+        :param start: ?
+        :param length: ?
+        :param end: ?
+        :return: ?
         """
         if not isinstance(data, (bytes, bytearray)):
             raise TypeError("Data must be bytes or bytearray")
@@ -114,6 +123,7 @@ class zxgfx:
         :pram fn: ?
         :pram fn_out: ?
         :pram bw: ?
+        :return: PIL image from ZX Spectrum *.scr image
         """
         data = array('B')
         with open(fn, 'rb') as f:
