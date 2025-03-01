@@ -200,7 +200,7 @@ class zxtape:
         )
         basic_line = basic_line[:2] + struct.pack("<H", len(basic_line)-4) + basic_line[4:]
         program_data = b'\xFF' + basic_line
-        prog_name_bytes = intapname.encode('ascii')[:10].ljust(10, b'\x20')  # Ensure at most 10 bytes + Pad with space bytes if needed
+        prog_name_bytes = tapname.encode('ascii')[:10].ljust(10, b'\x20')  # Ensure at most 10 bytes + Pad with space bytes if needed
         if autostart:
             ps = 0x0001
         else:
