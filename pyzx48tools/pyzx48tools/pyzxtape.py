@@ -6,9 +6,11 @@
 # upd: 20181201, 03, 04
 # upd: 20190321, 23, 24
 # upd: 20250209, 10, 13, 14
+# upd: 20250305
 
 from array import array
-import math, os
+import math, os, shutil, subprocess
+import pyzipper
 import struct
 
 from pyzx48tools.pyzxtools import write_bin, write_text
@@ -43,6 +45,21 @@ class zxtape:
             else:
                 write_text(filename, "\n".join(lines))
         return binary
+
+    def enum_files(self, root, ext):
+        """ ? """
+        onlyfiles = [root+f for f in listdir(root) if isfile(join(root, f)) and ends_with(f, ext)]
+        return onlyfiles
+
+    def do_zip(self, fnlist, folder, fout):
+        """ ? """
+        myzip = pyzipper.AESZipFile(fout, mode='w', compression=pyzipper.ZIP_LZMA, encryption=None)
+        for file in fnlist:
+            if folder != "" and folder != None:
+                oname = folder+"/"+os.path.basename(file)
+            else:
+                oname = os.path.basename(file)
+            myzip.write(file, oname)
 
     def basic2text(self, filename: str, per_line: bool = False):
         """

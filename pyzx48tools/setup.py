@@ -7,6 +7,7 @@ setup(
     packages=find_packages(),
     install_requires=[
         "pillow",  # PIL comes from the "pillow" package
+        "pyzipper",
     ],
     author="Jakub Noniewicz aka MoNsTeR/GDC",
     author_email="JNoniewicz@gmail.com",
