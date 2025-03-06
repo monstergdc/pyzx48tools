@@ -6,21 +6,21 @@
 # upd: 20181201, 03, 04
 # upd: 20190321, 23, 24
 # upd: 20250209, 10, 13, 14
-# upd: 20250305
+# upd: 20250305, 06
 
 from array import array
 import math, os, shutil, subprocess
 import pyzipper
 import struct
 
-from pyzx48tools.pyzxtools import write_bin, write_text
+from pyzx48tools.pyzxtools import write_bin, write_text, delete_file
 
 
 class zxtape:
     def __init__(self):
-        # nothing?
+        # nothing to do
         return None
-    
+
     def gen_y_addr_table(self, filename: str = "", output_bin: bool = True):
         """
         Generate addresses for each screen line of ZX Spectrum,
@@ -47,12 +47,18 @@ class zxtape:
         return binary
 
     def enum_files(self, root, ext):
-        """ ? """
+        """
+        Enumerate file in folder tree
+        ?
+        """
         onlyfiles = [root+f for f in listdir(root) if isfile(join(root, f)) and ends_with(f, ext)]
         return onlyfiles
 
     def do_zip(self, fnlist, folder, fout):
-        """ ? """
+        """
+        Create ZIP file from list of files
+        ?
+        """
         myzip = pyzipper.AESZipFile(fout, mode='w', compression=pyzipper.ZIP_LZMA, encryption=None)
         for file in fnlist:
             if folder != "" and folder != None:
@@ -60,6 +66,28 @@ class zxtape:
             else:
                 oname = os.path.basename(file)
             myzip.write(file, oname)
+
+    def run_pasmo(self, fin, fout, pasmo_full_path="", tap=False):
+        """
+        ?
+        """
+        pasmo_build = "./pasmo.exe" # assume local copy in project
+        if pasmo_full_path != "" and pasmo_full_path != None: # but override if needed
+            pasmo_build = pasmo_full_path
+        if tap:
+            return subprocess.run([pasmo_build, "--tapbas", fin, fout])
+        else:
+            return subprocess.run([pasmo_build, fin, fout])
+
+    def run_exo(self, fin, fout, exo_full_path=""):
+        """
+        ?
+        """
+        exo_build = "./exomizer.exe" # assume local copy in project
+        # note: like: exomizer.exe raw -P15 -T1 code.bin -o code.exo
+        if exo_full_path != "" and exo_full_path != None: # but override if needed
+            exo_build = exo_full_path
+        return subprocess.run([exo_build, 'raw', '-P15', '-T1',  fin, '-o', fout])
 
     def basic2text(self, filename: str, per_line: bool = False):
         """
@@ -255,9 +283,10 @@ class zxtape:
             # Header
             f.write(bytes([0x00, 0x03]))  # Header, Code block
             crc = 0x03
+            tap_name_bytes = tapname.encode('ascii')[:10].ljust(10, b'\x20')  # Ensure at most 10 bytes + Pad with space bytes if needed
             name = bytearray(10)
-            for i in range(min(10, len(tapname))):
-                name[i] = ord(tapname[i]) & 127
+            for i in range(10):
+                name[i] = tap_name_bytes[i] & 127
                 crc ^= name[i]
             f.write(name)
             for value in [size & 255, (size >> 8) & 255, start & 255, (start >> 8) & 255, 0x00, 0x80]:
@@ -276,3 +305,4 @@ class zxtape:
                 crc ^= b
             f.write(bytes([crc & 0xFF]))  # Checksum
 
+# EOF
