@@ -7,7 +7,7 @@
 # upd: 20181201, 03, 04
 # upd: 20190321, 23, 24
 # upd: 20250209, 10, 11, 12, 13, 14
-# upd: 20250305
+# upd: 20250305, 08
 
 import os
 
@@ -41,10 +41,17 @@ def write_text(fn_out, data):
         text_file.write(data)
 
 def create_info_for_speccy(fn, info):
-    """ ? """
+    """
+    Create text info file for ZX Production
+
+    :param fn: output file name
+    :param info: info data, dictionary with fields: "name", "author", "category", "requirements" and optional "notes"
+    """
     s = ""
-    s += f'Nazwa pracy: {info["name"]}\n'
-    s += f'Autor: {info["author"]}\n'
-    s += f'Kategoria: {info["category"]}\n'
-    s += f'Wymagania: {info["requirements"]}\n'
+    s += f'Name (Nazwa pracy): {info["name"]}\n'
+    s += f'Author (Autor): {info["author"]}\n'
+    s += f'Category (Kategoria): {info["category"]}\n'
+    s += f'Requirements (Wymagania): {info["requirements"]}\n'
+    if "notes" in info:
+        s += f'Notes (Uwagi): {info["notes"]}\n'       
     write_text(fn, s)

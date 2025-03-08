@@ -6,7 +6,7 @@
 # upd: 20181201, 03, 04
 # upd: 20190321, 23, 24
 # upd: 20250209, 10, 13, 14
-# upd: 20250305, 06
+# upd: 20250305, 06, 08
 
 from array import array
 import math, os, shutil, subprocess
@@ -216,18 +216,36 @@ class zxtape:
             print(f"Error reading file: {e}")
             return None
 
+    def create_basic_line_load_rndusr(self, lineNo, load=True, loadAdr=None, usrAdr=None):
+        """ ? """
+        l_no = struct.pack(">H", lineNo)  # ">H" means big-endian unsigned short (16-bit)
+        bas = l_no + b'\x00\x00' # Line number high byte, low byte, Length of the line (to be filled later)
+        if load:
+            bas += b'\xEF\x22\x22\xAF' # 'LOAD "" CODE'
+            if loadAdr != None:
+                bas += b'\xB0"' + str(loadAdr).encode('ascii') + b'"' # 'VAL "XXX"'
+            if usrAdr != None:
+                bas += b'\x3A'  # ':'
+        if usrAdr != None:
+            bas += b'\xF9\xC0\xB0"' + str(usrAdr).encode('ascii') + b'"'  # 'RANDOMIZE USR VAL "XXX"'
+        bas += b'\x0D'  # 'End of line
+        return bas
 
-    def create_tap_bas_loader(self, filename: str, tapname: str, loadaddr: int, autostart: bool = False):
+    def create_tap_bas(self, filename: str, tapname: str, program_data=None, autostart: bool = False):
         """
-        Create ZX *.tap file with bare minimun BASIC loader, like:
-        1 CLEAR addr-1 : LOAD "" CODE : RANDOMIZE USR addr
+        Create ZX *.tap file with BASIC code
 
         :param filename: *.tap file name to create
         :param tapname: BASIC program file name inside *.tap file
-        :param loadaddr: load/run address of CODE block to load
+        :param program_data: raw byte encoded program data (lines sizes will be recalculated here)
         :param autostart: whether this BASIC program should autostart
         :return: raw data as written to file
         """
+        lines = program_data
+        bas = b'\xFF'
+        for line in (lines):
+            out_line = line[:2] + struct.pack("<H", len(line)-4) + line[4:]
+            bas += out_line
 
         def calc_crc(data):
             crc = 0
@@ -235,16 +253,7 @@ class zxtape:
                 crc ^= b
             return crc
 
-        loadaddr_b_1 = struct.pack("<H", loadaddr-1)  # "<H" means little-endian unsigned short (16-bit)
-        loadaddr_b = struct.pack("<H", loadaddr)  # "<H" means little-endian unsigned short (16-bit)
-        basic_line = (
-            b'\x00\x01\x00\x00'  # Line number high byte (0), low byte (1), Length of the line (to be filled later)
-            b'\xFD' + str(loadaddr - 1).encode('ascii') + b'\x0E\x00\x00' + loadaddr_b_1 + b'\x00'  # CLEAR XXX-1
-            b'\x3A\xEF\x22\x22\xAF'  # ': LOAD "" CODE'
-            b'\x3A\xF9\xC0' + str(loadaddr).encode('ascii') + b'\x0E\x00\x00' + loadaddr_b + b'\x00' + b'\x0D'  # ': RANDOMIZE USR XXX' + End of line
-        )
-        basic_line = basic_line[:2] + struct.pack("<H", len(basic_line)-4) + basic_line[4:]
-        program_data = b'\xFF' + basic_line
+        program_data = bas
         prog_name_bytes = tapname.encode('ascii')[:10].ljust(10, b'\x20')  # Ensure at most 10 bytes + Pad with space bytes if needed
         if autostart:
             ps = 0x0001
@@ -259,6 +268,27 @@ class zxtape:
             f.write(data_block)
         return header_block + data_block
 
+    def create_tap_bas_loader(self, filename: str, tapname: str, loadaddr: int, autostart: bool = False):
+        """
+        Create ZX *.tap file with bare minimun BASIC loader, like:
+        1 CLEAR addr-1 : LOAD "" CODE : RANDOMIZE USR addr
+
+        :param filename: *.tap file name to create
+        :param tapname: BASIC program file name inside *.tap file
+        :param loadaddr: load/run address of CODE block to load
+        :param autostart: whether this BASIC program should autostart
+        :return: raw data as written to file
+        """
+
+        loadaddr_b_1 = struct.pack("<H", loadaddr-1)  # "<H" means little-endian unsigned short (16-bit)
+        loadaddr_b = struct.pack("<H", loadaddr)  # "<H" means little-endian unsigned short (16-bit)
+        basic_line = (
+            b'\x00\x01\x00\x00'  # Line number high byte (0), low byte (1), Length of the line (to be filled later)
+            b'\xFD' + str(loadaddr - 1).encode('ascii') + b'\x0E\x00\x00' + loadaddr_b_1 + b'\x00'  # CLEAR XXX-1
+            b'\x3A\xEF\x22\x22\xAF'  # ': LOAD "" CODE'
+            b'\x3A\xF9\xC0' + str(loadaddr).encode('ascii') + b'\x0E\x00\x00' + loadaddr_b + b'\x00' + b'\x0D'  # ': RANDOMIZE USR XXX' + End of line
+        )
+        return self.create_tap_bas(filename, tapname, [basic_line], autostart)
 
     def tap_append(self, filename: str, tapname: str, rawdata: bytes, start: int, size: int = 0):
         """
