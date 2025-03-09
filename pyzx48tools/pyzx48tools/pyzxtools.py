@@ -7,7 +7,7 @@
 # upd: 20181201, 03, 04
 # upd: 20190321, 23, 24
 # upd: 20250209, 10, 11, 12, 13, 14
-# upd: 20250305, 08
+# upd: 20250305, 08, 09
 
 import os
 
@@ -48,10 +48,12 @@ def create_info_for_speccy(fn, info):
     :param info: info data, dictionary with fields: "name", "author", "category", "requirements" and optional "notes"
     """
     s = ""
-    s += f'Name (Nazwa pracy): {info["name"]}\n'
-    s += f'Author (Autor): {info["author"]}\n'
-    s += f'Category (Kategoria): {info["category"]}\n'
-    s += f'Requirements (Wymagania): {info["requirements"]}\n'
+    s += f'Name: {info["name"]}\n'
+    s += f'Author: {info["author"]}\n'
+    s += f'Category: {info["category"]}\n'
+    s += f'Requirements: {info["requirements"]}\n'
+    if "released" in info:
+        s += f'Released: {info["released"]}\n'
     if "notes" in info:
-        s += f'Notes (Uwagi): {info["notes"]}\n'       
+        s += f'Notes: {info["notes"]}\n'
     write_text(fn, s)
