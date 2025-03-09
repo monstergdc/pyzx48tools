@@ -6,10 +6,10 @@
 # upd: 20181201, 03, 04
 # upd: 20190321, 23, 24
 # upd: 20250209, 10, 13, 14
-# upd: 20250305, 06, 08
+# upd: 20250305, 06, 08, 09
 
 from array import array
-import math, os, shutil, subprocess
+import math, sys, os, shutil, subprocess
 import pyzipper
 import struct
 
@@ -74,10 +74,17 @@ class zxtape:
         pasmo_build = "./pasmo.exe" # assume local copy in project
         if pasmo_full_path != "" and pasmo_full_path != None: # but override if needed
             pasmo_build = pasmo_full_path
+        # Hide console window
+        startupinfo = subprocess.STARTUPINFO()
+        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
         if tap:
-            return subprocess.run([pasmo_build, "--tapbas", fin, fout])
+            return subprocess.run([pasmo_build, "--tapbas", fin, fout],
+                                  stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                                  startupinfo=startupinfo)
         else:
-            return subprocess.run([pasmo_build, fin, fout])
+            return subprocess.run([pasmo_build, fin, fout],
+                                  stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                                  startupinfo=startupinfo)
 
     def run_exo(self, fin, fout, exo_full_path=""):
         """
@@ -87,7 +94,12 @@ class zxtape:
         # note: like: exomizer.exe raw -P15 -T1 code.bin -o code.exo
         if exo_full_path != "" and exo_full_path != None: # but override if needed
             exo_build = exo_full_path
-        return subprocess.run([exo_build, 'raw', '-P15', '-T1',  fin, '-o', fout])
+        # Hide console window
+        startupinfo = subprocess.STARTUPINFO()
+        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+        return subprocess.run([exo_build, 'raw', '-P15', '-T1',  fin, '-o', fout],
+                              stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                              startupinfo=startupinfo)
 
     def basic2text(self, filename: str, per_line: bool = False):
         """
