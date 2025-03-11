@@ -6,7 +6,7 @@
 # upd: 20181201, 03, 04
 # upd: 20190321, 23, 24
 # upd: 20250209, 10, 13, 14
-# upd: 20250305, 06, 08, 09
+# upd: 20250305, 06, 08, 09, 11
 
 from array import array
 import math, sys, os, shutil, subprocess
@@ -346,5 +346,17 @@ class zxtape:
                 f.write(bytes([b]))
                 crc ^= b
             f.write(bytes([crc & 0xFF]))  # Checksum
+
+    def tap_append_file(self, filename: str, tapname: str, sourcefile: str, start: int, size: int = 0):
+        """ ? """
+        with open(sourcefile, 'rb') as f:
+            rawdata = f.read()
+            self.tap_append(filename, tapname, rawdata, start, size)
+
+    def resave_part(self, fin, fout, from_byte, to_byte):
+        """ ? """
+        with open(fin, 'rb') as f:
+            rawdata = f.read()
+            write_bin(fn_out=fout, data=rawdata[from_byte:to_byte])
 
 # EOF
