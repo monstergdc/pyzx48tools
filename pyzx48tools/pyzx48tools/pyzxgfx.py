@@ -7,6 +7,7 @@
 # upd: 20181201, 03, 04
 # upd: 20190321, 23, 24
 # upd: 20250209, 10, 11, 12, 13, 14, 20
+# upd: 20250313, 22
 
 from PIL import Image, ImageDraw
 from array import array
@@ -77,7 +78,7 @@ class zxgfx:
 
     def frombytecolor(self, attr):
         """
-        Get paper as RBG, ink ask RGB from ZX Spectrum color (attribute) byte value
+        Get paper as RGB, ink ask RGB from ZX Spectrum color (attribute) byte value
 
         :param attr: ZX Spectrum color (attribute) byte value
         :return: ?
@@ -248,7 +249,7 @@ class zxgfx:
         cropped_im = im.crop((x, y, x + w, y + h))
         return cropped_im
 
-    def image2zx(self, fn, im_in=None, fn_out=None, no_attr=False, override_attr_byte=None, dither=Image.FLOYDSTEINBERG, altpalette=None):
+    def image2zx(self, fn, im_in=None, fn_out=None, no_attr=False, override_attr_byte=None, dither=Image.FLOYDSTEINBERG, altpalette=None, only_bw=False):
         """
         Convert image to ZX .scr format, optionally save, also return raw data.
         """
@@ -284,6 +285,9 @@ class zxgfx:
                 ink = ink_ndx & 7
                 paper = paper_ndx & 7
                 data[x+32*y+6144] = self.bytecolor(ink=ink, paper=paper, bright=bright, flash=0)
+                if only_bw:
+                    most_frequent_color = (0, 0, 0)
+                    max_contrast_color = (255, 255, 255)
                 mfc[y][x] = most_frequent_color
                 mcc[y][x] = max_contrast_color
 
