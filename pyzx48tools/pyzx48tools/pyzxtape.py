@@ -6,10 +6,13 @@
 # upd: 20181201, 03, 04
 # upd: 20190321, 23, 24
 # upd: 20250209, 10, 13, 14
-# upd: 20250305, 06, 08, 09, 11
+# upd: 20250305, 06, 08, 09, 11, 28
 
 from array import array
-import math, sys, os, shutil, subprocess
+import math, sys, shutil, subprocess
+import os
+from os import walk, listdir
+from os.path import isfile, join
 import pyzipper
 import struct
 
@@ -46,13 +49,31 @@ class zxtape:
                 write_text(filename, "\n".join(lines))
         return binary
 
+    def ends_with(self, f, extlist):
+        if extlist == []:
+            return True
+        for ext in extlist:
+            if f.endswith(ext):
+                return True
+        return False
+
     def enum_files(self, root, ext):
         """
-        Enumerate file in folder tree
-        ?
+        Enumerate files in folder, optionally filter by ext from list
         """
-        onlyfiles = [root+f for f in listdir(root) if isfile(join(root, f)) and ends_with(f, ext)]
+        onlyfiles = [root+f for f in listdir(root) if isfile(join(root, f)) and self.ends_with(f, ext)]
         return onlyfiles
+
+    def enum_files_tree(self, root, ext):
+        """
+        Enumerate files in folder tree, optionally filter by ext from list
+        """
+        src = []
+        for r, d, f in os.walk(root): # r=root, d=directories, f = files
+            for file in f:
+                if ends_with(file, ext):
+                    src.append(os.path.join(r, file))
+        return src
 
     def do_zip(self, fnlist, folder, fout):
         """
